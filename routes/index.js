@@ -45,6 +45,8 @@ router.get('/test', function(req, res, next) {
 
 router.get('/test-phantom', testController.testPhantom);
 
+router.get('/test-puppeteer', testController.testPuppeteer);
+
 
 
 module.exports = router;
