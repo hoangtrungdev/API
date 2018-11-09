@@ -47,6 +47,8 @@ router.get('/test-phantom', testController.testPhantom);
 
 router.get('/test-puppeteer', testController.testPuppeteer);
 
+router.get('/test-get-price', testController.testGetPrice);
+
 
 
 module.exports = router;

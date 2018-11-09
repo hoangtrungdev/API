@@ -60,8 +60,16 @@ module.exports = {
     await instance.exit();
   },
   testPuppeteer: async function (req, res) {
-    const browser = await puppeteer.launch();
+    const VIEWPORT = { width: 1280, height: 1080 };
+    const browser = await puppeteer.launch({
+      // headless: false,
+      // slowMo : 500,
+      // args: [
+      //   '--window-size=1280,1000'
+      // ]
+    });
     const page = await browser.newPage();
+    await page.setViewport(VIEWPORT);
     await page.goto('https://chudu24.com');
 
     // Lấy danh sách top điểm đến
@@ -77,14 +85,11 @@ module.exports = {
       });
       return dataReturn;
     });
+    // function getDetail
+    getDetail = async (item) => {
+      await page.goto('https:' + item.link);
 
-    // Tạo array process lấy chi tiết top điểm đến
-    const arrayProcess = topDiemDen.map(async (item, index) => {
-      console.log(`Chi tiết top điểm đến thứ ${index + 1 } ( ${item.cityName} : ${item.link} )`);
-      let pageCity = await browser.newPage();
-      await pageCity.goto('https:' + item.link);
-
-      let dataDetail = await pageCity.evaluate(() => {
+      let dataDetail = await page.evaluate(() => {
         let pageTitle = $('.page-top h1 a').text();
         let hotelList = [];
         $('.hotel-item').each((index, item) => {
@@ -103,25 +108,47 @@ module.exports = {
       item = { ...item, ...dataDetail};
       // return Promise.resolve(item); ---- default async function là 1 Promise
       return item;
-    });
+    };
+
+
+    // Tạo array process lấy chi tiết top điểm đến
+    for (let i = 0; i < topDiemDen.length; i++) {
+      let item = topDiemDen[i];
+      console.log(`Chi tiết top điểm đến thứ ${i + 1 } ( ${item.cityName} : ${item.link} )`);
+      topDiemDen[i] = await getDetail(item)
+    }
 
     res.json({
       code: 200,
       message: "Get data success.",
       data:  {
-        topDiemDen : await Promise.all(arrayProcess)
+        topDiemDen : topDiemDen
       }
+    });
+    await browser.close();
+
+  },
+  testGetPrice: async function (req, res) {
+
+    const VIEWPORT = { width: 1280, height: 1080 };
+    const browser = await puppeteer.launch({
+      headless: false,
+      args: [
+        '--window-size=1280,1000'
+      ]
+    });
+    const page = await browser.newPage();
+    await page.setViewport(VIEWPORT);
+    await page.goto('https://khachsan.chudu24.com/t.vung-tau.html');
+
+    await page.screenshot({path:'../public/image-test/image-get-price.png', fullPage : true});
+    res.json({
+      code: 200,
+      message: "Get data success.",
+      data: 'aaaaaaaaaa'
     });
     await browser.close();
 
   }
 };
-const promiseWaterfall = (arrayTask) => {
-  return arrayTask.reduce((promiseChain, currentTask) => {
-    return promiseChain.then(chainResults =>
-      currentTask.then(currentResult =>
-        [ ...chainResults, currentResult ]
-      )
-    );
-  }, Promise.resolve([]));
-};
+
