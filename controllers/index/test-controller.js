@@ -2,9 +2,25 @@ const phantom = require('phantom');
 const cheerio = require('cheerio');
 const moment = require('moment');
 const puppeteer = require('puppeteer');
+const fs = require('fs');
+const request = require('request');
+
+const download = function(uri, filename){
+  return new Promise((resolve) =>{
+      request.head(uri,() => {
+        request(uri).pipe(fs.createWriteStream(filename)).on('close',() => {
+          return resolve();
+        });
+      });
+    }
+  )
+};
+
+
+
 
 module.exports = {
-  testPhantom: async function(req, res, next) {
+  testPhantom: async function(req, res) {
     const instance = await phantom.create();
     const page = await instance.createPage();
     let arrRequest = [];
@@ -86,7 +102,7 @@ module.exports = {
       return dataReturn;
     });
     // function getDetail
-    getDetail = async (item) => {
+    getDetail = async (item, index) => {
       await page.goto('https:' + item.link);
 
       let dataDetail = await page.evaluate(() => {
@@ -95,9 +111,13 @@ module.exports = {
         $('.hotel-item').each((index, item) => {
           let hotelName = $('.post-features h2 a', item).html();
           let price = $('.price-zone .hotel-price', item).text();
+          let linkImage = $(".post-thumbnail img", item).attr('src');
+
+
           hotelList = [...hotelList, {
             hotelName : hotelName,
-            price : price
+            price : price,
+            linkImage : linkImage
           }];
         });
         return {
@@ -105,8 +125,20 @@ module.exports = {
           hotelList : hotelList
         };
       });
+
       item = { ...item, ...dataDetail};
+      if(item && item.hotelList && item.hotelList.length > 0){
+        item.hotelList.forEach((hotelInfo, indexHotel) => {
+          let dir = `../public/hotels/${index + 1} - ${item.cityName}`;
+          if (!fs.existsSync(dir)) {
+            fs.mkdirSync(dir);
+          }
+          download(`https:${hotelInfo.linkImage}`, `${dir}/${indexHotel + 1} - ${hotelInfo.hotelName}.png`);
+
+        })
+      }
       // return Promise.resolve(item); ---- default async function là 1 Promise
+
       return item;
     };
 
@@ -115,7 +147,7 @@ module.exports = {
     for (let i = 0; i < topDiemDen.length; i++) {
       let item = topDiemDen[i];
       console.log(`Chi tiết top điểm đến thứ ${i + 1 } ( ${item.cityName} : ${item.link} )`);
-      topDiemDen[i] = await getDetail(item)
+      topDiemDen[i] = await getDetail(item, i)
     }
 
     res.json({
@@ -128,24 +160,42 @@ module.exports = {
     await browser.close();
 
   },
-  testGetPrice: async function (req, res) {
+  testGetChoTot: async function (req, res) {
 
     const VIEWPORT = { width: 1280, height: 1080 };
     const browser = await puppeteer.launch({
-      headless: false,
-      args: [
-        '--window-size=1280,1000'
-      ]
+      // headless: false,
+      // args: [
+      //   '--window-size=1280,1000'
+      // ]
     });
     const page = await browser.newPage();
     await page.setViewport(VIEWPORT);
-    await page.goto('https://khachsan.chudu24.com/t.vung-tau.html');
+    await page.goto('https://www.chotot.com/tp-ho-chi-minh/mua-ban-dien-thoai');
 
-    await page.screenshot({path:'../public/image-test/image-get-price.png', fullPage : true});
+    let dataCrawl = await page.evaluate(() => {
+
+      let ctStickyAdsListing = []
+;      let ctAdListingWrapper =  document.getElementsByClassName("ctAdListingWrapper");
+      for(let i=0; i< ctAdListingWrapper.length; i++) {
+        let link = ctAdListingWrapper[i].getElementsByClassName("ctAdListingItem")[0].getAttribute('href');
+        let title = ctAdListingWrapper[i].getElementsByClassName("ctAdListingTitle")[0].textContent;
+        let imageUrl = ctAdListingWrapper[i].getElementsByClassName("ctAdLitingThumbnail")[0].getElementsByTagName('img')[0].getAttribute('src');
+        ctStickyAdsListing.push({
+          link : `https://www.chotot.com${link}`,
+          title : title,
+          imageUrl : imageUrl
+        })
+      }
+      return {
+        ctStickyAdsListing : ctStickyAdsListing
+      };
+    });
+
     res.json({
       code: 200,
       message: "Get data success.",
-      data: 'aaaaaaaaaa'
+      data:  dataCrawl
     });
     await browser.close();
 

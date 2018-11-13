@@ -47,7 +47,7 @@ router.get('/test-phantom', testController.testPhantom);
 
 router.get('/test-puppeteer', testController.testPuppeteer);
 
-router.get('/test-get-price', testController.testGetPrice);
+router.get('/test-get-cho-tot', testController.testGetChoTot);
 
 
 
