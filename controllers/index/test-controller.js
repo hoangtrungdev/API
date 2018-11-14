@@ -175,18 +175,21 @@ module.exports = {
 
     let dataCrawl = await page.evaluate(() => {
 
-      let ctStickyAdsListing = []
-;      let ctAdListingWrapper =  document.getElementsByClassName("ctAdListingWrapper");
+      // Begin get ctStickyAdsListing
+      let ctStickyAdsListing = [];
+      let ctAdListingWrapper =  document.getElementsByClassName("ctAdListingWrapper");
       for(let i=0; i< ctAdListingWrapper.length; i++) {
         let link = ctAdListingWrapper[i].getElementsByClassName("ctAdListingItem")[0].getAttribute('href');
         let title = ctAdListingWrapper[i].getElementsByClassName("ctAdListingTitle")[0].textContent;
         let imageUrl = ctAdListingWrapper[i].getElementsByClassName("ctAdLitingThumbnail")[0].getElementsByTagName('img')[0].getAttribute('src');
         ctStickyAdsListing.push({
-          link : `https://www.chotot.com${link}`,
+          link : `https://www.chotot.com` + link,
           title : title,
           imageUrl : imageUrl
         })
       }
+      // End get ctStickyAdsListing
+
       return {
         ctStickyAdsListing : ctStickyAdsListing
       };
