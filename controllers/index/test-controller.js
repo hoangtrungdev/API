@@ -178,7 +178,7 @@ module.exports = {
       // Begin get ctStickyAdsListing
       let ctStickyAdsListing = [];
       let ctAdListingWrapper =  document.getElementsByClassName("ctAdListingWrapper");
-      for(let i=0; i< ctAdListingWrapper.length; i++) {
+      for(let i=0; i < ctAdListingWrapper.length; i++) {
         let link = ctAdListingWrapper[i].getElementsByClassName("ctAdListingItem")[0].getAttribute('href');
         let title = ctAdListingWrapper[i].getElementsByClassName("ctAdListingTitle")[0].textContent;
         let imageUrl = ctAdListingWrapper[i].getElementsByClassName("ctAdLitingThumbnail")[0].getElementsByTagName('img')[0].getAttribute('src');
@@ -194,6 +194,7 @@ module.exports = {
         ctStickyAdsListing : ctStickyAdsListing
       };
     });
+    console.error('------>', dataCrawl);
 
     res.json({
       code: 200,

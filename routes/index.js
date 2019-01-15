@@ -2,10 +2,16 @@ const express = require('express');
 const router = express.Router();
 const models = require("../models");
 const Sequelize  = require("sequelize");
-const testController = require('../controllers/index/test-controller');
+const {testPhantom, testPuppeteer, testGetChoTot} = require('../controllers/index/test-controller');
+const moment = require('moment');
 
 /* GET home page. */
-router.get('/', function(req, res, next) {
+router.get('/',(req, res) => {
+  res.write('API running... ' + moment().format('DD/MM/YYYY hh:mm:ss'));
+  res.end();
+});
+
+router.get('/test-mysql',(req, res) => {
   models.query("SELECT * FROM test", { type: Sequelize.QueryTypes.SELECT})
     .then(myTableRows => {
       res.json({
@@ -43,11 +49,12 @@ router.get('/test', function(req, res, next) {
 
 });
 
-router.get('/test-phantom', testController.testPhantom);
+router.get('/test-phantom', testPhantom);
 
-router.get('/test-puppeteer', testController.testPuppeteer);
+/** http://localhost:5555/test-puppeteer */
+router.get('/test-puppeteer', testPuppeteer);
 
-router.get('/test-get-cho-tot', testController.testGetChoTot);
+router.get('/test-get-cho-tot', testGetChoTot);
 
 
 

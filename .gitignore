@@ -3,7 +3,6 @@
 # dependencies
 node_modules
 package-lock.json
-idea/
 
 # testing
 coverage
@@ -18,3 +17,7 @@ Thumbs.db
 .idea
 npm-debug.log
 compilation-stats.json
+FirebaseConfig.js
+
+
+
